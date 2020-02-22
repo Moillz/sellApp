@@ -10,6 +10,17 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
 
+const express = require('express')
+const app = express() //请求server
+var appData = require('../data.json')  //加载本地数据文件
+var seller = appData.seller
+var goods = appData.goods
+var ratings = appData.ratings
+
+var apiRoutes = express.Router()
+app.use('/api', apiRoutes) //通过路由请求数据
+
+
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
@@ -42,8 +53,29 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
+    },
+    before(api) {
+      api.get('/seller', (req, res) => {
+        res.json({
+          errno: 0,
+          data: seller
+        })
+      }),
+      api.get('/goods', (req, res) => {
+        res.json({
+          errno: 0,
+          data: goods 
+        })
+      }),
+      api.get('/ratings', (req, res) => {
+        res.json({
+          errno: 0,
+          data: ratings 
+        })
+      })
     }
   },
+  
   plugins: [
     new webpack.DefinePlugin({
       'process.env': require('../config/dev.env')
@@ -68,6 +100,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   ]
 })
 
+
+
 module.exports = new Promise((resolve, reject) => {
   portfinder.basePort = process.env.PORT || config.dev.port
   portfinder.getPort((err, port) => {
@@ -82,7 +116,7 @@ module.exports = new Promise((resolve, reject) => {
       // Add FriendlyErrorsPlugin
       devWebpackConfig.plugins.push(new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
+          messages: [`Your apiRouteslication is running here: http://${devWebpackConfig.devServer.host}:${port}`],
         },
         onErrors: config.dev.notifyOnErrors
         ? utils.createNotifierCallback()
